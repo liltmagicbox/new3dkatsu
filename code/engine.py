@@ -1,0 +1,206 @@
+from window import Window
+window = Window(size=(1280,700))
+window.set_title('engine!')
+
+
+from shader import Shader
+vertn = """
+#version 410 core
+layout (location = 0) in vec3 position;
+//layout (location = 1) in vec3 color;
+out vec3 out_color;
+
+uniform mat4 Model;
+//uniform mat4 View;
+//uniform mat4 Projection;
+uniform mat4 ProjectionView;
+
+uniform vec3 color;
+
+uniform float time;
+
+void main() 
+{
+    //gl_Position = vec4(position, 1);
+    //gl_Position = Projection * View * Model * vec4(position, 1);
+    gl_Position = ProjectionView * Model * vec4(position, 1);
+    
+    //vec3 new_position = position;
+    //new_position.y *= time;
+    
+    vec3 green = vec3(0,1,0);
+    out_color = color/2 + position/2;
+}
+
+"""
+shader = Shader(vertn)
+
+
+#=========================future
+fragn = """
+#version 410 core
+
+uniform vec3 unicolor; //has too?
+
+//uniform sampler2D tex0;
+//uniform sampler2D tex1;
+
+in vec3 out_color;
+out vec4 FragColor;
+void main()
+{
+    FragColor = vec4(out_color,1);
+    //FragColor = vec4(unicolor,1);
+
+    //outcolor = texture2D(tex0, uvcord);
+    //outcolor = mix(texture(tex0, uvcord), texture(tex1, uvcord), 0.4);
+
+}
+"""
+
+
+
+
+
+
+
+
+from vao import Vao
+#data = {'position':[0,0,0, 1,0,0, 1,1,0 ,0,1,0] ,'index':[0,1,2, 0,2,3] ,'color': [1,0,0, 0,1,0, 0,0,1, 1,0,1] }
+#vao = Vao(data)
+#data = {'position':[0,0,0, 1,0,0, 1,1,0 ,0,1,0,    1,0,-1, 1,1,-1, 0,1,-1] ,'index':[0,1,2, 0,2,3,  1,4,5, 1,5,2, 3,2,5, 3,5,6] }
+#data = {'position':[-0.5,-0.5,0.5, 0.5,-0.5,0.5, 0.5,0.5,0.5 ,-0.5,0.5,0.5,    0.5,-0.5,-0.5, 0.5,0.5,-0.5, -0.5,0.5,-0.5] ,'index':[0,1,2, 0,2,3,  1,4,5, 1,5,2, 3,2,5, 3,5,6] }
+
+from sphere import make_floor, shape_ring, flatten, make_floors, make_band, make_wall, curve_tree, curve_sphere
+
+#x = make_floor(shape_ring(8))
+
+#x = make_floors(shape_ring(8), height=5, radius=0.3)
+#x = make_band(x[0],x[1])
+
+#make tree
+x = make_floors(shape_ring(14), height=2, radius=1, stack=18, curve = curve_tree)
+x = make_wall(x)
+x = flatten(x)
+
+
+#add base
+xx = make_floors(shape_ring(6), height=2, radius=0.3, stack=4)
+xx = flatten(xx)
+for idx,i in enumerate(xx):
+	if idx%3==1:#means y
+		i -=2
+	x.append(i)
+
+data = {'position':x}
+vao = Vao(data)
+
+
+
+
+
+
+
+
+
+from camera import Camera
+cam = Camera()
+
+#looking down
+cam.position = (0,5,5)
+cam.look(0,0,0)
+
+#looking up
+#cam.position = (0,-5,0)
+#cam.look(0,0,0)
+
+
+
+
+keymap = {
+	'ESCAPE_':lambda:window.close(),
+	#'MOUSE_M':'set_cursor_lock',
+	'MOUSE_R': lambda:window.set_cursor_lock(True),
+
+	'W':lambda:cam.set_speed(1),
+	'S':lambda:cam.set_speed(-1),
+	'W_':lambda:cam.set_speed(0),
+	'S_':lambda:cam.set_speed(0),
+	
+	'F':lambda:make_unit(),
+}
+
+#need value for axis input..
+inputmap = {
+	'MOUSE_DXDY': lambda v:cam.set_dxdy(*v) ,
+	'D': lambda v:cam.set_dxdy(0.1,0) ,
+	'A': lambda v:cam.set_dxdy(-0.1,0) ,
+}
+
+
+def inputfunc(inputs):
+	for i in inputs:
+		name,value = i
+		func = inputmap.get(name, lambda x:1)
+		func(value)
+
+from unit import Unit
+
+import random
+units = []
+def make_unit():
+	unit = Unit()
+	unit.transform.rvel.set(0,0.1,0) #x->y->z order.
+	
+	x,z = random.randint(-15,15) , random.randint(-15,15)
+	unit.transform.pos.set(x,0,z)
+
+	unit.uniforms['color'] = random.random(),random.random(),random.random()
+	#unit.uniforms['color'] = (1,0,1)
+	units.append(unit)
+
+[make_unit() for i in range(60)]
+
+def update(dt):
+	cam.update(dt)
+	for unit in units:
+		unit.update(dt)
+		if unit.transform.pos.y>40:
+			unit.transform.pos.y = -2
+
+
+
+
+
+
+import time
+
+t = time.time()
+
+def draw():
+	shader.bind()
+	
+	ProjectionView = cam.get_ProjectionView()
+	shader.set_mat4('ProjectionView', (ProjectionView).to_list() )
+
+	for unit in units:
+		Model = unit.get_Model()
+		shader.set_mat4('Model', Model.to_list() )
+		shader.set_vec3('color', unit.uniforms['color'] )
+
+		shader.set_vec3('color', unit.uniforms['color'] )
+		
+		shader.set_float('time', time.time()-t )
+
+		vao.bind()
+		vao.draw(0)
+		vao.draw(1)
+
+window.bind_keymap(keymap)
+window.bind_input(inputfunc)
+window.bind_update(update)
+window.bind_draw(draw)
+window.glPointSize(5)
+
+
+window.run()
