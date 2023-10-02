@@ -12,14 +12,23 @@ class Unit:
 	def __init__(self):
 		self.id = str(uuid4())
 
-		self.transform = Transform() # from unity. unit don't need to know def get_Model.
+		#self.transform = Transform() # from unity. unit don't need to know def get_Model.
 
 		#self.material
 		#self.mesh
 		self.visual = Visual()  # finally absctracted! unit knows too much about draw thing.
 
 		self.uniforms = {}
-		self.updates = []		
+		self.updates = []
+
+		#===ECS?
+		self.components = {'transform':Transform()}
+	def __getattr__(self,name):
+		try:
+			return self.components[name]
+		except KeyError:
+			raise KeyError( f'Unit has no attribute of :{name}')
+
 	def draw(self, ViewProjection):
 		Model = self.get_Model()
 		self.visual.draw(ViewProjection,Model)
@@ -27,12 +36,20 @@ class Unit:
 		return self.transform.get_Model()
 	
 	def update(self,dt):
-		self.transform.update(dt)
+		#self.transform.update(dt)
+		for comp in self.components.values():
+			if hasattr(comp,'update'):
+				comp.update(dt)  # comp no need to know unit, as usually designed.
+		
 		for update in self.updates:
 			update(self,dt)
 	def add_update(self, update):
 		self.updates.append(update)
-	
+		#self.somewhat['update'].append(update)
+	def add_component(self, comp):
+		self.components[comp.name] = comp
+
+
 class ConvenientUnit(Unit):
 	#===
 	@property
