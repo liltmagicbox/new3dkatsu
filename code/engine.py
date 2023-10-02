@@ -2,6 +2,62 @@ from window import Window
 window = Window(size=(1280,700))
 window.set_title('engine!')
 
+from shader import Shader
+shader = Shader()
+
+from vao import Vao
+vao = Vao()
+
+from camera import Camera
+cam = Camera()
+
+from unit import Unit
+unit = Unit()
+
+keymap = {
+	'ESCAPE':lambda v: window.close(),
+	#'MOUSE_M':'set_cursor_lock',
+	'MOUSE_R': lambda v:window.set_cursor_lock(True),
+
+	'W':lambda v:cam.set_speed(v),
+	'S':lambda v:cam.set_speed(-v),
+	'MOUSE_DXDY': lambda v:cam.set_dxdy(*v) ,
+}
+
+def update(dt):
+	cam.update(dt)
+
+def draw():
+	shader.bind()
+	
+	ProjectionView = cam.get_ProjectionView()
+	shader.set_mat4('ProjectionView', (ProjectionView).to_list() )
+
+	Model = unit.get_Model()
+	shader.set_mat4('Model', Model.to_list() )
+
+	vao.unbind()
+	vao.bind()
+	vao.draw(0)
+	vao.draw(2)
+
+
+window.bind_input(lambda x:print(x) if x else '')
+
+window.bind_keymap(keymap)
+window.bind_update(update)
+window.bind_draw(draw)
+window.glPointSize(5)
+window.run()
+
+exit()
+
+
+
+from window import Window
+window = Window(size=(1280,700))
+window.set_title('engine!')
+
 
 from shader import Shader
 vertn = """

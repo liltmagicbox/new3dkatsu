@@ -1,6 +1,6 @@
 from glfw.GLFW import *
 from OpenGL.GL import *
-from time import perf_counter
+from time import perf_counter,time
 #https://www.glfw.org/docs/latest/group__context.html
 
 from window_keymap import keymap
@@ -139,16 +139,17 @@ class Window:
         vdx,vdy = (dx/w, dy/h)
         if self.cursor_locked:#mouse not drag but forward.
             vdx,vdy = -vdx,-vdy
-        self.inputs.append( ('MOUSE_DXDY', (vdx,vdy) ) )
+        #self.inputs.append( ('MOUSE_DXDY', (vdx,vdy) ) )
+        self.put_input('MOUSE_DXDY', (vdx,vdy) )
         self.cursor_before = x,y
         self.cursor_changed = False
 
     def put_input(self, name,value):
-        if not value:
-            name += '_'
+        # if not value:
+        #     name += '_'
         if name in self.keymap:
-            self.keymap[name]()
-        self.inputs.append( (name,value))
+            self.keymap[name](value)
+        self.inputs.append( (name,value, time() )) #can add as you want.great.
     def bind_keymap(self, keymap):
         self.keymap = keymap
 
