@@ -18,18 +18,20 @@ uniform mat4 ProjectionView;
 uniform vec3 color;
 
 uniform float time;
+uniform float scale = 1.0;
 
 void main() 
 {
     //gl_Position = vec4(position, 1);
     //gl_Position = Projection * View * Model * vec4(position, 1);
-    gl_Position = ProjectionView * Model * vec4(position, 1);
+    vec4 Position = vec4(scale * position , 1);
+    gl_Position = ProjectionView * Model * Position;
     
     //vec3 new_position = position;
     //new_position.y *= time;
     
-    vec3 green = vec3(0,1,0);
-    out_color = color/2 + position/2;
+    vec3 white = vec3(1,1,1);
+    out_color = color*(1-position.y) + white*position.y;
 }
 
 """
@@ -151,8 +153,8 @@ units = []
 def make_unit():
 	unit = Unit()
 	unit.transform.rvel.set(0,0.1,0) #x->y->z order.
-	
-	x,z = random.randint(-15,15) , random.randint(-15,15)
+	k = 30
+	x,z = random.randint(-k,k) , random.randint(-k,k)
 	unit.transform.pos.set(x,0,z)
 
 	unit.uniforms['color'] = random.random(),random.random(),random.random()
@@ -191,6 +193,7 @@ def draw():
 		shader.set_vec3('color', unit.uniforms['color'] )
 		
 		shader.set_float('time', time.time()-t )
+		shader.set_float('scale', time.time()%2*5 )
 
 		vao.bind()
 		vao.draw(0)

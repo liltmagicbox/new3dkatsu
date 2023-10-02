@@ -76,11 +76,11 @@ class Vao:
         self.replacer = replacer
     #========================
     def bind(self):
-        if Vao.last != self:
-            glBindVertexArray(self.vao)
-            Vao.last = self    
-    # def unbind(self):
-    #     glBindVertexArray(0)
+        glBindVertexArray(self.vao)
+        # if Vao.last != self:
+        #     Vao.last = self
+    def unbind(self):
+        glBindVertexArray(0)
 
     def draw(self, kind=3):
         "0:point 1:line 2:lineloop 3:tri"
