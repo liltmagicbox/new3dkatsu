@@ -4,8 +4,14 @@
 ===========
 ダウンロードリンクはこちらです:
 https://drive.google.com/file/d/1GnoQQhkhklOgLuFd_D-HJJa6EnsVcIak/view?usp=sharing
+(提出したバージョンです)
+
+容量が少ない方では、このファイルをダウンロードしてください。
+[newnew (14)_run_able.zip]
 
 または緑色の [Code] ボタンを押して [Download ZIP]をクリックしてください。
+
+[etc]フォルダには以前に作業した結果があります。
 ===========
 
 you can run the program by
