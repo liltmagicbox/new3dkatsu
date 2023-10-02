@@ -3,23 +3,23 @@ from OpenGL.GL import shaders
 
 vertn = """
 #version 410 core
-layout (location = 0) in vec3 position;
-layout (location = 1) in vec3 color;
+layout (location = 0) in vec3 position3f;
+layout (location = 1) in vec3 color3i;
 out vec3 out_color;
 
 uniform mat4 Model;
-//uniform mat4 View;
-//uniform mat4 Projection;
 uniform mat4 ProjectionView;
 
 void main() 
 {
-    //gl_Position = ViewProjection * Model * vec4(pos, 1);
+    //vec3 Position = vec3(position3f.x, color3b.y , position3f.z);
+    vec3 Position = vec3(position3f);
+
+    gl_Position = ProjectionView * Model * vec4(Position, 1);
     
-    //gl_Position = vec4(position, 1);
-    //gl_Position = Projection * View * Model * vec4(position, 1);
-    gl_Position = ProjectionView * Model * vec4(position, 1);
-    out_color = vec3(1,0,1);
+    //out_color = vec3(1,0,1);
+    //out_color = color3b;
+    out_color = color3i/255000;
 }
 
 """
@@ -27,16 +27,24 @@ void main()
 fragn = """
 #version 410 core
 
-uniform vec3 unicolor; //has too?
-
 in vec3 out_color;
 out vec4 FragColor;
+
 void main()
 {
     FragColor = vec4(out_color,1);
-    //FragColor = vec4(unicolor,1);
 }
 """
+
+def _get_program(v_str,f_str,g_str=None):
+    program = 0
+    if bool(glCreateShader):  # do not try->return default here.
+        vshader = shaders.compileShader( v_str, GL_VERTEX_SHADER)
+        fshader = shaders.compileShader( f_str, GL_FRAGMENT_SHADER)
+        program = shaders.compileProgram( vshader,fshader)
+        glDeleteShader(vshader)
+        glDeleteShader(fshader)
+    return program
 
 
 class Shader:
@@ -45,16 +53,8 @@ class Shader:
     def __init__(self, v_str=None, f_str=None):
         v_str = vertn if v_str is None else v_str
         f_str = fragn if f_str is None else f_str
-        program = 0
         
-        if bool(glCreateShader):  # do not try->return default here.
-            vshader = shaders.compileShader( v_str, GL_VERTEX_SHADER)
-            fshader = shaders.compileShader( f_str, GL_FRAGMENT_SHADER)
-            program = shaders.compileProgram( vshader,fshader)
-            glDeleteShader(vshader)
-            glDeleteShader(fshader)
-
-        self.program = program
+        self.program = _get_program(v_str,f_str)
         self.locations = {}
 
     def bind(self):

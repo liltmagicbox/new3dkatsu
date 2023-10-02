@@ -39,7 +39,7 @@ def draw():
 	vao.unbind()
 	vao.bind()
 	vao.draw(0)
-	vao.draw(2)
+	vao.draw(3)
 
 
 window.bind_input(lambda x:print(x) if x else '')
@@ -62,7 +62,7 @@ window.set_title('engine!')
 from shader import Shader
 vertn = """
 #version 410 core
-layout (location = 0) in vec3 position;
+layout (location = 0) in vec3 position3f;
 //layout (location = 1) in vec3 color;
 out vec3 out_color;
 
@@ -84,7 +84,7 @@ void main()
     //vec4 Position = vec4(position , 1);
     
     // using dist
-    vec4 Position = vec4(scale * position , 1);
+    vec4 Position = vec4(scale * position3f , 1);
 
     gl_Position = ProjectionView * Model * Position;
 
@@ -166,7 +166,7 @@ for idx,i in enumerate(xx):
 		i -=2
 	x.append(i)
 
-data = {'position':x}
+data = {'position3f':x}
 vao = Vao(data)
 
 
