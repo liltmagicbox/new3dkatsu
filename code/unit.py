@@ -19,7 +19,7 @@ class Unit:
 		self.visual = Visual()  # finally absctracted! unit knows too much about draw thing.
 
 		self.uniforms = {}
-		
+		self.updates = []		
 	def draw(self, ViewProjection):
 		Model = self.get_Model()
 		self.visual.draw(ViewProjection,Model)
@@ -28,7 +28,11 @@ class Unit:
 	
 	def update(self,dt):
 		self.transform.update(dt)
-
+		for update in self.updates:
+			update(self,dt)
+	def add_update(self, update):
+		self.updates.append(update)
+	
 class ConvenientUnit(Unit):
 	#===
 	@property

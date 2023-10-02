@@ -18,20 +18,35 @@ uniform mat4 ProjectionView;
 uniform vec3 color;
 
 uniform float time;
+uniform float timer = 1.0;
 uniform float scale = 1.0;
 
 void main() 
 {
     //gl_Position = vec4(position, 1);
     //gl_Position = Projection * View * Model * vec4(position, 1);
-    vec4 Position = vec4(scale * position , 1);
-    gl_Position = ProjectionView * Model * Position;
+    //vec4 Position = vec4(position , 1);
     
+    // using dist
+    vec4 Position = vec4(scale * position , 1);
+
+    gl_Position = ProjectionView * Model * Position;
+
+
     //vec3 new_position = position;
     //new_position.y *= time;
     
-    vec3 white = vec3(1,1,1);
-    out_color = color*(1-position.y) + white*position.y;
+    //vec3 white = vec3(1,1,1);
+    //out_color = color*(1-position.y) + white*position.y; //upper snow.
+
+    
+    // using dist
+    //float dist = distance( vec3(0,0,0), vec3(Position.xyz) );
+    //dist = clamp(dist,0.0,1.0);
+    //out_color = color*(dist) + vec3(1,1,1)*(1-dist);
+    
+    //out_color = color*(dist) + vec3(1,1,1)*(1-dist);
+    out_color = color;
 }
 
 """
@@ -88,6 +103,7 @@ x = flatten(x)
 
 #add base
 xx = make_floors(shape_ring(6), height=2, radius=0.3, stack=4)
+xx = make_wall(xx)
 xx = flatten(xx)
 for idx,i in enumerate(xx):
 	if idx%3==1:#means y
@@ -109,8 +125,8 @@ from camera import Camera
 cam = Camera()
 
 #looking down
-cam.position = (0,5,5)
-cam.look(0,0,0)
+cam.position = (0,0,5)
+cam.look(0,2,0)
 
 #looking up
 #cam.position = (0,-5,0)
@@ -152,28 +168,51 @@ import random
 units = []
 def make_unit():
 	unit = Unit()
+	
 	unit.transform.rvel.set(0,0.1,0) #x->y->z order.
-	k = 30
+	k = 100
 	x,z = random.randint(-k,k) , random.randint(-k,k)
-	unit.transform.pos.set(x,0,z)
+	unit.transform.pos.set(x,0,-100)
+	unit.transform.vel.set(0,40,0) #10m/s is 36000m/hr, 36km.
+	unit.transform.acc.set(0,-10,0)
 
 	unit.uniforms['color'] = random.random(),random.random(),random.random()
+	unit.uniforms['timer'] = 3
+	unit.uniforms['time'] = 0
+	unit.uniforms['time_remove'] = 5
 	#unit.uniforms['color'] = (1,0,1)
+
+	# def update_lock_height(self,dt):
+	# 	if self.transform.pos.z<-40:
+	# 		self.transform.pos.z = -2
+	#unit.bind_update(update_lock_height)
+	#unit.add_update(update_lock_height)
+	def update_time(self,dt):
+		self.uniforms['time'] += dt
+		if self.uniforms['time_remove'] < self.uniforms['time']:
+			#self.destroy()
+			#unit.set_func('destroy',destroy)
+			units.remove(self)
+	unit.add_update(update_time)
+	
 	units.append(unit)
 
-[make_unit() for i in range(60)]
+
+[make_unit() for i in range(20)]
 
 def update(dt):
 	cam.update(dt)
 	for unit in units:
 		unit.update(dt)
-		if unit.transform.pos.y>40:
-			unit.transform.pos.y = -2
+		#if unit.transform.pos.y>40:
+		#	unit.transform.pos.y = -2
+		#--> unit.update
 
 
 
 
 
+import math
 
 import time
 
@@ -190,20 +229,35 @@ def draw():
 		shader.set_mat4('Model', Model.to_list() )
 		shader.set_vec3('color', unit.uniforms['color'] )
 
-		shader.set_vec3('color', unit.uniforms['color'] )
 		
-		shader.set_float('time', time.time()-t )
-		shader.set_float('scale', time.time()%2*5 )
+		#shader.set_vec3('timer', unit.uniforms['timer'] )
+		#shader.set_float('time', time.time()-t )
+		#shader.set_float('scale', time.time()*0.2%1 )  #time * frequency % Hz
+		tafter = unit.uniforms['time'] - unit.uniforms['timer']
+		if tafter > 0:
+			#velocity = tafter
+			#scale is not vel but pos. inv.x**2 is acceptable.. which is log.
+			#https://www.mathportal.org/math-tests/tests-in-exponents-and-logarithms/logarithms.php?testNo=5
+			#math.log(0)=-inf / math.log(1)=0 / math.log(2.7) = 1
+			#y=5*log(x+1)
+			f = lambda x:5*math.log(x+1)
 
+			shader.set_float('scale', (1.0+ f(tafter*50) )  )
+			#shader.set_vec3('color', ()  )
+		else:
+			shader.set_float('scale', (1.0)  )
+
+
+		vao.unbind()
 		vao.bind()
 		vao.draw(0)
-		vao.draw(1)
+		#vao.draw(1)
 
 window.bind_keymap(keymap)
 window.bind_input(inputfunc)
 window.bind_update(update)
 window.bind_draw(draw)
-window.glPointSize(5)
+window.glPointSize(2)
 
 
 window.run()
