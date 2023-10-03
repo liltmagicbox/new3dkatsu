@@ -26,6 +26,57 @@ engine.inputmanger->engine.model
 
 
 """
+
+class Window:
+	"only knows View."
+	def bind_update(self,dt):
+		view.update(dt)
+	def bind_draw(self):
+		view.draw()
+
+class View:
+	"act like View, but have ViewModel"
+	def draw(self):
+		viewdata = self.viewmodel.get()
+		#complex draw funcations. like gl.
+		print(viewdata)
+	def update(self,dt):
+		"here can 144hz->30hz kinds. ..?"
+		self.viewmodel.update(dt)
+
+class ViewModel:
+	"simple data manager."
+	def connect(self, address,port):
+		'try to connect to the model.'
+	def update(self,dt):
+		#self.model.update(dt)
+		self.model.put('update me')
+	def get(self):
+		viewdata = self.model.get()
+		return viewdata
+
+class Model:
+	def update(self,dt):
+		print('model update')
+	def get(self):
+		return data
+	def put(self,data):
+		print('model got data')
+
+_ ="""
+		View              View
+Window <- [ViewModel - Caster]  <- Model
+
+Window - View - Model
+fine.
+
+         View                    View
+Window -> [Controller -> InputManager] -> Model
+
+also inputs.
+
+"""
+
 def splitting_scenario():
 	#from glfw_window import Window
 	#from pyglet_window import Window
