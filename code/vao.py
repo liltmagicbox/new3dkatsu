@@ -137,6 +137,11 @@ class Vao:
         #this requires : shader.get_loc_attribute('position3f') finally.
 
         
+        vertex_counts = set()
+        for name,data in attr_data_map.items():
+            vertex_count = len(data) // get_size(name)
+            vertex_counts.add(vertex_count)
+        assert len(vertex_counts) == 1
         
 
         #points = len(mesh_data['position'])//3
@@ -144,9 +149,12 @@ class Vao:
         #indices = np.array(indices).astype('uint32')
         
         #https://stackoverflow.com/questions/30362391/how-do-you-find-the-first-key-in-a-dictionary
+        # if indices is None:
+        #     first_attr = next(iter(attr_data_map))
+        #     vertex_count = len(attr_data_map[first_attr]) // int(first_attr[-2]) #position3f
+        #     indices = tuple(range(vertex_count))
+        
         if indices is None:
-            first_attr = next(iter(attr_data_map))
-            vertex_count = len(attr_data_map[first_attr]) // int(first_attr[-2]) #position3f
             indices = tuple(range(vertex_count))
         indices = make_data_flat_dtype(indices,'uint32')
         
@@ -288,6 +296,20 @@ class Vao:
 
     #=====of vertices is not done. attr_data_tobytes
     #1:attr update/2:idxupdate 3: extend/shrink(by replace)  4?change only attrs-datas???
+    #indices . keep vertex but draw.point diff./length. great!
+    #input kwargs? 'indices' again.. but more flexible. Vao(posirtion3f=[0,0,0,1,1,1,0,1,0])
+    #dynamic update, if we have data, we need prepare nparr , not give list.
+    #fo, force prepare to update?
+    #1. KWARGS INPUT TOO LONG, COMPLICATED. KEEP THE CURRENT SIT.
+    #2. UPDATE, FORCE TO BE PREPARED. NOT PLAIN [],EVEN [[],[]].
+    
+    #3. UPDATE-INDICES,
+    #3-2 INDICES PARTIAL DRAW? FROM [0.0-1.0] RANGE?.. NO!!!! IT SHOULD BE SHADER'S. KEEP SIMPLE
+    #4. REPLACE,  NO?
+    #INDICES UPDATE IS HARMFUL, WITH ALL REPLACE TOO.
+    #...REPLACE VERY-EASY DATA SCEINCE. NOT KNOWING SHADER.
+    # CUT THE DRAW / OFFSET DRAW/ STRIDE(JUMP)DRAW,  LIKE NORMAL LIST!
+
 
     def replace_vertices(self, vertices):
         "for diffreent size. use with indices."
