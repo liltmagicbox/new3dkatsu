@@ -2,6 +2,131 @@ from window import Window
 window = Window(size=(1280,700))
 window.set_title('engine!')
 
+desc = """
+
+..need Renderer
+window glfw pyglet(that easy dist)
+and three.js engine laser etc..
+
+Viewmodel is dataholder
+Renderer knows how to draw
+Window has View / Controller
+
+View is,,Renderer?? i think so.
+view.draw(viewmodel), fine.
+in game-engine,
+implement viewmodel, has data.
+and view, draw-class.
+
+
+Controller sends data to the
+engine.inputmanager
+
+engine.inputmanger->engine.model
+
+
+"""
+def splitting_scenario():
+	#from glfw_window import Window
+	#from pyglet_window import Window
+
+	window.close()
+	#window.set_cursor_lock(True)
+	window.lock_cursor()
+	window.unlock_cursor()
+
+	window.bind_keymap(keymap)
+	window.bind_input(lambda x:print(x) if x else '')
+	window.bind_update(update)
+	window.bind_draw(draw)
+	window.glPointSize(5)
+	window.run()
+
+	window.watch(model)
+	view.watch(model)
+
+	view = View()
+
+	from controller import Controller
+	controller = Controller()
+
+	from network import SocketServer
+	sock = SocketServer()
+	#sock.bind_input(lambda x:controller.put(x))
+	for i in sock.get():
+		#window.put_input(i) #reversed..
+		#window.controller.put(i) #no, controller is more like singleton, close to Model.
+		#controller.put(i)
+		model.put(i)
+		world.put(i)
+		engine.controller.put(i)
+
+
+s = """
+
+Window  Controller    - Model
+        View          - Model
+
+
+              Engine
+Window   ->     Controller
+Somewhat   ->     Controller
+View      <-	  Model
+WindowView      <-	  Model
+Window-View      <-	  Model
+
+Window    ->	  Controller
+Userinput -> Window
+
+[redefine controller as, input-sender. controller can be many.]
+Userinput -> Window.controller ->||->  engine.inputmanager -> engine.model
+data ->controller ->||->  engine.inputmanager -> engine.model
+
+controller = Controller(address =192.1.1.7, port=26696)
+controller = Controller()
+controller.connect(address,port)
+controller.put(data)
+
+window <-View <-ViewModel <-||<- engine.visualcaster <- engine.model
+window-is-View <-ViewModel <-||<- engine.visualcaster <- engine.model
+viewmodel = ViewModel()
+#viewmodel.watch(address,port) #same interface with controller.
+viewmodel.connect(address,port)
+data = viewmodel.get()
+ or
+
+#hopefully viewmodel is unit holder
+#or lightweight, so three.js kinds?
+think visual.draw() is required..?
+viewmodel.draw() #has gl functions?
+
+on update:
+#Viewmodel sends i'm watching, don't abandon me msg.
+#if 1 seconds kind after, visualcaster shuts down the connection.
+viewmodel automatically updated,
+draws as it was.
+
+
+@window.on_draw
+def draw():
+	viewmodel.draw()
+
+def draw():
+	viewmodel.draw()
+window.bind_draw(draw)
+
+
+...semas viewmodel knows gl features.. not renderer.
+
+Window - Renderer - Viewmodel
+glfw      GPU func   data
+pyglet
+three.js 
+unity
+
+"""
+
+
 from shader import Shader
 shader = Shader()
 
