@@ -7,6 +7,7 @@ you can run the program by
 ***_runable.zip -> engine.exe
 
 ## specially look:
+/etc: old works.
 
 engine.py
 -main file.
