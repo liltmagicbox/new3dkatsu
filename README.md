@@ -1,7 +1,7 @@
 # new3dkatsu
  advanced 3d engine.
 
-[newnew (14)_run_able.zip]
+dist -> newnew (14)_run_able.zip
 
 you can run the program by
 ***_runable.zip -> engine.exe
